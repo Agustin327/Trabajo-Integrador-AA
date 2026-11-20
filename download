@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.DS_Store
+# Mapa de OSM descargado (grande y se regenera solo)
+*.graphml
+# Salidas de la herramienta de ruta manual
+ruta_manual/
+*.zip
