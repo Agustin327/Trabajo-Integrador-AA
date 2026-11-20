@@ -1,6 +1,6 @@
 # Ruteo de ambulancias en CABA como problema de búsqueda
 
-[![Abrir en Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/TU_USUARIO/TU_REPO/blob/main/notebooks/ambulancias.ipynb)
+[![Abrir en Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Agustin327/Trabajo-Integrador-AA/blob/main/notebooks/ambulancias.ipynb)
 
 Dada una ambulancia y un incidente, se busca la ruta de **menor tiempo** ambulancia → incidente → hospital de guardia,
 sobre la red vial real de la Ciudad de Buenos Aires. El trabajo modela el problema como un problema de búsqueda en
