@@ -10,8 +10,7 @@ Ejemplos:
       --origen "hospital:pirovano" --incidente "-34.6037, -58.3816" --comparar
   python src/ruta.py --fuente sintetico --origen "hospital:h2" --incidente "-34.58, -58.375"
 
-Genera en la carpeta de salida: ruta.csv (paso a paso), ruta.geojson (para verla en
-geojson.io o QGIS), mapa.png y resumen.txt.
+
 """
 import argparse
 import csv
