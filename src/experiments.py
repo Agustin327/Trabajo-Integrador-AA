@@ -1,7 +1,7 @@
 """Experimentos: casos al azar (semilla fija) y comparación de algoritmos.
 
 Ejemplos:
-  # Prueba rápida con un grafo sintético (no necesita descargar nada)
+  # Prueba con un grafo sintético 
   python src/experiments.py --fuente sintetico --n 10 --corto-max 1500 --largo-min 3500
 
   # Con datos reales (OSM + GeoJSON de hospitales del GCBA)
