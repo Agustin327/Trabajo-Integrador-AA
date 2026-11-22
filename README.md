@@ -4,7 +4,7 @@
 
 Dada una ambulancia y un incidente, se busca la ruta de **menor tiempo** ambulancia → incidente → hospital de guardia,
 sobre la red vial real de la Ciudad de Buenos Aires. El trabajo modela el problema como un problema de búsqueda en
-grafos e implementa y compara **BFS, UCS (Dijkstra), A\*, A\* ponderado y búsqueda voraz (greedy)**.
+grafos e implementa y compara **BFS, DFS, Dijkstra, búsqueda bidireccional, A\* y búsqueda voraz (greedy)**.
 
 **Utilidad:** reducir el tiempo de respuesta en emergencias, medir qué zonas quedan lejos de un hospital con guardia y
 apoyar decisiones sobre dónde ubicar bases de ambulancias.
@@ -26,16 +26,22 @@ La elección del hospital destino forma parte de la búsqueda: la solución es l
 **Observación:** como `v` es constante, minimizar el tiempo equivale a minimizar la distancia. `v` solo escala los
 tiempos reportados, no cambia la ruta óptima ni el número de nodos expandidos.
 
+## Algoritmos sin heurística
+
+- **BFS / DFS:** ignoran los costos; devuelven el camino con menos aristas / el primero que encuentran. Solo de referencia.
+- **Dijkstra** (búsqueda de costo uniforme): expande por costo acumulado; es el óptimo de referencia.
+- **Bidireccional:** Dijkstra desde la ambulancia hacia adelante y, a la vez, desde los 14 hospitales (fase 1) hacia atrás por las aristas invertidas;
+  se detiene cuando los dos mínimos de frontera suman lo del mejor camino encontrado, por lo que es óptimo.
+
 ## Heurísticas
 
 Sea `d(a, b)` la distancia en línea recta (haversine) y `H` el conjunto de hospitales.
 
-- **h0 = 0:** equivale a UCS. Referencia de optimalidad.
+- **h0 = 0:** equivale a Dijkstra. Referencia de optimalidad.
 - **h2 (principal), para las dos fases:**
   - fase 0: `h2(n) = d(n, incidente)/v + min_{h∈H} d(incidente, h)/v`
   - fase 1: `h2(n) = min_{h∈H} d(n, h)/v`
 - **h3 (Manhattan):** contraejemplo. En una ciudad con calles diagonales puede sobreestimar y dejar de ser admisible.
-- **A\* ponderado:** `f = g + w·h2` con `w = 1,5`. No es admisible, pero expande menos nodos.
 - **Greedy:** `f = h2`, ignora el costo acumulado.
 
 **h2 es admisible**: una ruta por calles nunca es más corta que la línea recta y ninguna puede ser más rápida que `v`,
@@ -43,11 +49,25 @@ y tomar el mínimo sobre los hospitales no sobreestima. **Es consistente**: cump
 cambio de fase ambos lados valen lo mismo (en el nodo del incidente las dos fases dan `min_h d(incidente, h)/v`).
 Ambas propiedades se comprueban numéricamente en `src/pruebas.py`.
 
+## Justificación del enfoque
+
+- **Búsqueda en grafos y no aprendizaje automático.** El problema tiene un modelo completamente conocido (calles, sentidos, longitudes
+  y velocidad), así que no hay nada que aprender de datos: lo que se necesita es encontrar el mejor camino. Eso es exactamente un problema
+  de búsqueda, y permite garantizar la solución óptima en vez de aproximarla.
+- **Grafo dirigido.** Las ambulancias deben respetar el sentido de las calles; un grafo no dirigido daría rutas imposibles.
+- **Estado `(nodo, fase)`.** La ruta debe pasar por el incidente antes de ir al hospital. Con la fase en el estado, una sola búsqueda
+  resuelve el recorrido completo y además elige el hospital que minimiza el tiempo total, sin probar los 14 por separado.
+- **Costo en tiempo.** En una emergencia importa el tiempo, no la distancia. Con velocidad constante ambos coinciden, pero el modelo ya
+  está planteado en tiempo para poder usar velocidades distintas por calle si se consiguen datos.
+- **A\* con h2 como algoritmo principal.** La línea recta dividida por la velocidad nunca sobreestima el tiempo real, así que A\* devuelve
+  siempre la ruta óptima (igual que Dijkstra) pero expandiendo bastante menos nodos. Los demás algoritmos (BFS, DFS, bidireccional, greedy
+  y A\* con Manhattan) están para comparar y mostrar por qué no son la mejor opción para este problema.
+
 ## Datos
 
 | Dato | Fuente |
 |---|---|
-| Red vial de CABA | OpenStreetMap, vía OSMnx (`network_type="drive"`, grafo dirigido). Se descarga al ejecutar |
+| Red vial de CABA | OpenStreetMap, vía OSMnx (`network_type="drive"`, grafo dirigido). Ya procesada en `data/caba_grafo.npz`; si falta, se descarga al ejecutar |
 | Hospitales | Portal de datos abiertos del Gobierno de la Ciudad: <https://data.buenosaires.gob.ar/dataset/hospitales> (en `data/hospitales.geojson`) |
 | Hospitales considerados | Los 14 hospitales generales de agudos con guardia las 24 h: Álvarez, Argerich, Durand, Fernández, Grierson, Penna, Piñero, Pirovano, Ramos Mejía, Rivadavia, Santojanni, Tornú, Vélez Sarsfield y Zubizarreta. Se filtran por nombre. Se descartan hospitales de niños, especializados y privados |
 
@@ -72,11 +92,11 @@ Datos de la red vial © colaboradores de OpenStreetMap, licencia ODbL.
 │   ├── config.py        parámetros (velocidad, semilla, lista de hospitales, umbrales)
 │   ├── data.py          grafo de OSM, carga y filtro de hospitales, grafo sintético de prueba
 │   ├── problem.py       el problema de búsqueda y las heurísticas
-│   ├── search.py        BFS, UCS, A*, A* ponderado y greedy, con métricas
+│   ├── search.py        BFS, DFS, Dijkstra, bidireccional, A* y greedy, con métricas
 │   ├── experiments.py   casos al azar y comparación de algoritmos
 │   ├── ruta.py          ruta óptima para un origen y un incidente cargados a mano
 │   └── pruebas.py       pruebas automáticas
-├── data/                hospitales.geojson
+├── data/                hospitales.geojson y caba_grafo.npz (red vial ya procesada)
 ├── notebooks/           ambulancias.ipynb (corre todo y muestra los resultados)
 └── resultados/          tablas y gráficos generados
 ```
@@ -84,7 +104,7 @@ Datos de la red vial © colaboradores de OpenStreetMap, licencia ODbL.
 ## Cómo ejecutarlo
 
 **En Google Colab (lo más simple):** botón "Abrir en Colab" de arriba y ejecutar las celdas en orden.
-La primera vez descarga el mapa de OSM y puede tardar varios minutos.
+Con `data/caba_grafo.npz` en el repositorio tarda segundos; sin ese archivo, la primera vez descarga el mapa de OSM (varios minutos) y lo crea.
 
 **En local** (desde la raíz del repositorio):
 
@@ -95,7 +115,7 @@ python src/experiments.py --fuente osm --hospitales data/hospitales.geojson --n 
 ```
 
 Salida: `resultados/resultados.csv` (una fila por caso y algoritmo) y `resultados/resumen.csv` (promedios por categoría).
-Algoritmos disponibles en `--algos`: `bfs`, `ucs`, `astar_h2`, `greedy_h2`, `astar_h3`, `wastar_h2_1.5`.
+Algoritmos disponibles en `--algos`: `bfs`, `dfs`, `dijkstra`, `bidir`, `astar_h2`, `greedy_h2`, `astar_h3`.
 Si el GeoJSON usa otro nombre para el campo del hospital, el programa lista los campos disponibles; indicá el correcto
 con `--campo-nombre`.
 
@@ -111,6 +131,8 @@ Genera en `ruta_manual/`: `resumen.txt` (distancia y tiempo por fase, hospital e
 `ruta.csv` (paso a paso), `ruta.geojson` (para verla en geojson.io o QGIS) y `mapa.png`.
 
 ## Resultados
+
+(La tabla es de una corrida anterior, con UCS (equivalente a Dijkstra) y A* ponderado, sin DFS ni bidireccional: volver a correr `experiments.py` para actualizarla.)
 
 60 casos sobre la red vial real de CABA (20 por categoría, semilla 42), con la ambulancia partiendo de un
 hospital al azar y velocidad de 46 km/h. El grafo tiene 17.866 nodos y 37.077 aristas dirigidas, y los 14 hospitales se ubicaron en la red. Datos completos en `resultados/resultados.csv` y promedios en `resultados/resumen.csv`.
@@ -148,6 +170,23 @@ Ejemplo de ruta óptima real (`src/ruta.py`): ambulancia en el Hospital Pirovano
 - **BFS** minimiza cuadras, no distancia: expande tanto o más que UCS y da rutas bastante más largas.
 
 El análisis completo está en el informe.
+
+## Cómo se usaría en una situación real
+
+1. **Entrada:** el despachante del servicio de emergencias recibe una llamada. Se toma la ubicación del incidente (dirección o
+   coordenadas) y la de la ambulancia disponible, que en un sistema real vendría del GPS del vehículo.
+2. **Cálculo:** el modelo ubica ambos puntos en la red vial y corre A\* con h2. En los experimentos esto tarda unos pocos milisegundos
+   (hasta unos 16 ms en los casos largos), así que es compatible con un uso en tiempo real.
+3. **Salida:** la ruta paso a paso ambulancia → incidente → hospital, el hospital de guardia elegido, el tiempo estimado de cada
+   tramo y el recorrido en un mapa. Hoy `src/ruta.py` entrega esto para una ambulancia y un incidente.
+4. **Elegir qué ambulancia enviar:** se puede correr la búsqueda para cada ambulancia libre y despachar la de menor tiempo hasta el
+   incidente.
+5. **Planificación:** con incidentes simulados (como en los experimentos) se pueden medir qué zonas quedan lejos de un hospital con
+   guardia o dónde conviene ubicar nuevas bases.
+
+Para usarlo en operación real faltaría incorporar datos que este trabajo no tiene: velocidades según el tráfico y la hora, calles cortadas,
+el estado de cada ambulancia, y la disponibilidad o saturación de cada guardia. Con una velocidad constante, los tiempos son una
+estimación de manejo y no un compromiso de llegada.
 
 ## Limitaciones
 
