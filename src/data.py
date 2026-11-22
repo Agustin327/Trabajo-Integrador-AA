@@ -1,7 +1,6 @@
 """Carga de datos: grafo vial (OpenStreetMap) y hospitales (GeoJSON del GCBA).
 
 El grafo se maneja con índices enteros 0..N-1 para que la búsqueda sea rápida.
-Solo se usan numpy y scipy; osmnx se importa únicamente al descargar el mapa real.
 """
 import json
 import os
