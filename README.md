@@ -4,7 +4,7 @@
 
 Dada una ambulancia y un incidente, se busca la ruta de **menor tiempo** ambulancia → incidente → hospital de guardia,
 sobre la red vial real de la Ciudad de Buenos Aires. El trabajo modela el problema como un problema de búsqueda en
-grafos e implementa y compara **BFS, DFS, Dijkstra, búsqueda bidireccional, A\* y búsqueda voraz (greedy)**.
+grafos e implementa y compara **BFS, Dijkstra, A, A ponderado\* y búsqueda voraz (greedy)**.
 
 **Utilidad:** reducir el tiempo de respuesta en emergencias, medir qué zonas quedan lejos de un hospital con guardia y
 apoyar decisiones sobre dónde ubicar bases de ambulancias.
@@ -28,10 +28,8 @@ tiempos reportados, no cambia la ruta óptima ni el número de nodos expandidos.
 
 ## Algoritmos sin heurística
 
-- **BFS / DFS:** ignoran los costos; devuelven el camino con menos aristas / el primero que encuentran. Solo de referencia.
+- **BFS :** ignora los costos; devuelve el camino con menos aristas . Solo de referencia.
 - **Dijkstra** (búsqueda de costo uniforme): expande por costo acumulado; es el óptimo de referencia.
-- **Bidireccional:** Dijkstra desde la ambulancia hacia adelante y, a la vez, desde los 14 hospitales (fase 1) hacia atrás por las aristas invertidas;
-  se detiene cuando los dos mínimos de frontera suman lo del mejor camino encontrado, por lo que es óptimo.
 
 ## Heurísticas
 
@@ -60,8 +58,7 @@ Ambas propiedades se comprueban numéricamente en `src/pruebas.py`.
 - **Costo en tiempo.** En una emergencia importa el tiempo, no la distancia. Con velocidad constante ambos coinciden, pero el modelo ya
   está planteado en tiempo para poder usar velocidades distintas por calle si se consiguen datos.
 - **A\* con h2 como algoritmo principal.** La línea recta dividida por la velocidad nunca sobreestima el tiempo real, así que A\* devuelve
-  siempre la ruta óptima (igual que Dijkstra) pero expandiendo bastante menos nodos. Los demás algoritmos (BFS, DFS, bidireccional, greedy
-  y A\* con Manhattan) están para comparar y mostrar por qué no son la mejor opción para este problema.
+  siempre la ruta óptima pero expandiendo bastante menos nodos. Los demás algoritmos están para comparar y mostrar por qué no son la mejor opción para este problema; por ello se eligió, además, BFS como referencia, greedy como algoritmo que solo considera la heurística y costo uniforme como algoritmo que solo considera el costo.
 
 ## Datos
 
@@ -115,7 +112,7 @@ python src/experiments.py --fuente osm --hospitales data/hospitales.geojson --n 
 ```
 
 Salida: `resultados/resultados.csv` (una fila por caso y algoritmo) y `resultados/resumen.csv` (promedios por categoría).
-Algoritmos disponibles en `--algos`: `bfs`, `dfs`, `dijkstra`, `bidir`, `astar_h2`, `greedy_h2`, `astar_h3`.
+Algoritmos disponibles en `--algos`: `bfs`, `ucs`, `astar_h2`, `greedy_h2`, `astar_h3`, `wastar_h2_1.5`.
 Si el GeoJSON usa otro nombre para el campo del hospital, el programa lista los campos disponibles; indicá el correcto
 con `--campo-nombre`.
 
@@ -131,8 +128,6 @@ Genera en `ruta_manual/`: `resumen.txt` (distancia y tiempo por fase, hospital e
 `ruta.csv` (paso a paso), `ruta.geojson` (para verla en geojson.io o QGIS) y `mapa.png`.
 
 ## Resultados
-
-(La tabla es de una corrida anterior, con UCS (equivalente a Dijkstra) y A* ponderado, sin DFS ni bidireccional: volver a correr `experiments.py` para actualizarla.)
 
 60 casos sobre la red vial real de CABA (20 por categoría, semilla 42), con la ambulancia partiendo de un
 hospital al azar y velocidad de 46 km/h. El grafo tiene 17.866 nodos y 37.077 aristas dirigidas, y los 14 hospitales se ubicaron en la red. Datos completos en `resultados/resultados.csv` y promedios en `resultados/resumen.csv`.
