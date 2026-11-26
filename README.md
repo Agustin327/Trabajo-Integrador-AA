@@ -2,6 +2,8 @@
 
 [![Abrir en Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Agustin327/Trabajo-Integrador-AA/blob/main/notebooks/ambulancias.ipynb)
 
+ [Informe completo (PDF)](Informe-TP-Integrador.pdf)
+
 Dada una ambulancia y un incidente, se busca la ruta de **menor tiempo** ambulancia → incidente → hospital de guardia,
 sobre la red vial real de la Ciudad de Buenos Aires. El trabajo modela el problema como un problema de búsqueda en
 grafos e implementa y compara **BFS, Dijkstra, A, A ponderado\* y búsqueda voraz (greedy)**.
@@ -164,7 +166,7 @@ Ejemplo de ruta óptima real (`src/ruta.py`): ambulancia en el Hospital Pirovano
 - **A\* con Manhattan (no admisible)** fue subóptimo en 48 de 60 casos (hasta 12,8%).
 - **BFS** minimiza cuadras, no distancia: expande tanto o más que UCS y da rutas bastante más largas.
 
-El análisis completo está en el informe.
+El análisis completo está en el [informe](Informe-TP-Integrador.pdf).
 
 ## Cómo se usaría en una situación real
 
